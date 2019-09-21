@@ -1,2 +1,66 @@
 ---
 # vars file for sgwilbur.collectd
+
+graphite_host:
+
+collectd_service: collectd
+fqdnlookup: true
+autoloadplugin: true
+loglevel: INFO
+interval: 10
+
+collectd_conf:
+  RedHat:
+    packages:
+      - collectd
+      - collectd-rrdtool
+      # This should allow colelctd on selinux machines but this bug is fixed in
+      #  * > selinux-policy-targeted-3.13.1-283
+      # highest in centos repos is  selinux-policy-targeted-3.13.1-252.el7.1.noarch
+      # https://bugzilla.redhat.com/show_bug.cgi?id=1304029
+      - selinux-policy-targeted
+      - lm_sensors
+    dirs:
+      base: /var/lib/collectd
+      conf: /etc
+      confd: /etc/collectd
+      pid: /var/run
+      plugins: /usr/lib64/collectd
+      log: /var/log
+  Debian:
+    packages:
+      - collectd
+      - collectd-core
+      - collectd-utils
+      - lm-sensors
+    dirs:
+      base: /var/lib/collectd
+      conf: /etc/collectd
+      confd: /etc/collectd/collectd.conf.d
+      pid: /var/run
+      plugins: /usr/lib/collectd
+      log: /var/log
+  Darwin:
+    packages:
+      - collectd
+    dirs:
+      base: /usr/local/var/lib/collectd
+      conf: /usr/local/etc/
+      confd: /usr/local/etc/collectd/collectd.conf.d
+      pid: /usr/local/var/run
+      plugins: /usr/local/lib/collectd
+      log: /usr/local/var/log
+
+collectd_conf_files:
+  - collectd.conf
+  - collection.conf
+
+collectd_plugins:
+  - aggregation
+  - cpu
+  - filters
+  - write_graphite
+  - logfile
+  - log_stash
+  - syslog
+  - thresholds

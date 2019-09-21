@@ -1,7 +1,7 @@
-Role Name
+Collectd
 =========
 
-A brief description of the role goes here.
+A helper for installation and configuration of collectd.
 
 Requirements
 ------------

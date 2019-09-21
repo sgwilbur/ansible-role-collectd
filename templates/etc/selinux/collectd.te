@@ -1,0 +1,29 @@
+module collectd 1.0;
+
+require {
+	type var_log_t;
+	type collectd_t;
+	type mailbox_port_t;
+	type lmtp_port_t;
+	type var_run_t;
+	class tcp_socket name_connect;
+	class file { open unlink };
+	class dir write;
+}
+
+#============= collectd_t ==============
+
+#!!!! This avc is allowed in the current policy
+allow collectd_t lmtp_port_t:tcp_socket name_connect;
+
+#!!!! This avc is allowed in the current policy
+allow collectd_t mailbox_port_t:tcp_socket name_connect;
+
+#!!!! This avc is allowed in the current policy
+allow collectd_t var_log_t:dir write;
+
+#!!!! This avc is allowed in the current policy
+allow collectd_t var_log_t:file open;
+
+#!!!! This avc is allowed in the current policy
+allow collectd_t var_run_t:file unlink;

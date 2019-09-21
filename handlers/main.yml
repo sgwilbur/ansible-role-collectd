@@ -1,2 +1,17 @@
 ---
-# handlers file for sgwilbur.collectd
+
+- name: collectd-stop
+  service:
+    name: "{{ collectd_service }}"
+    state: stopped
+  listen:
+    - collectd stop
+    - collectd restart
+
+- name: collectd-start
+  service:
+    name: "{{ collectd_service }}"
+    state: started
+  listen:
+    - collectd start
+    - collectd restart

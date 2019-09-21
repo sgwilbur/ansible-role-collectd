@@ -1,0 +1,8 @@
+LoadPlugin logfile
+
+<Plugin logfile>
+  LogLevel "{{ loglevel }}"
+  Timestamp true
+  PrintSeverity false
+  File "{{ collectd_conf[ansible_os_family].dirs.log }}/collectd.log"
+</Plugin>

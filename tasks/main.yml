@@ -1,2 +1,81 @@
 ---
-# tasks file for sgwilbur.collectd
+
+# Redhat family systems
+- name: Ensure the EPEL repository is available
+  yum:
+    pkg: epel-release
+    state: installed
+  when: ansible_os_family == "RedHat"
+
+- name: Install packages for collectd
+  yum:
+    pkg: "{{ collectd_conf[ansible_os_family].packages }}"
+    state: installed
+  when: ansible_os_family == "RedHat"
+
+    # Updates to selinux settings to allow metrics to be sent out.
+    # https://stackoverflow.com/questions/34787016/collectd-permission-denied-to-connect-to-remote-host
+    # https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/6/html/security-enhanced_linux/sect-security-enhanced_linux-fixing_problems-allowing_access_audit2allow
+
+    # audit2allow -a
+    # audit2allow -a -M collectd_t
+    # semodule -i collectd_t.pp
+
+    # or allow network access to the service
+    # setsebool collectd_tcp_network_connect on
+    # This allows the network connection, but does nto remove all denied messages
+
+# This module requires libsemanage-python support
+# - name: Set httpd_can_network_connect flag on and keep it persistent across reboots
+#   seboolean:
+#     name: collectd_tcp_network_connect
+#     state: yes
+#     persistent: yes
+
+# Change from deny to log issues
+- name: Set selinux to permissive
+  selinux:
+    policy: targeted
+    state: permissive
+
+# Debian Systems
+- name: Install required collectd packages
+  apt:
+    name: "{{ collectd_conf[ansible_os_family].packages }}"
+    update_cache: yes
+    cache_valid_time: 3600
+    state: present
+    ### Squash apt-get warning https://github.com/ansible/ansible/issues/56832
+    force_apt_get: true
+    ###
+  when: ansible_os_family == "Debian"
+
+# Darwin systems
+# - name: Install collectd
+#   homebrew:
+#     name: collectd
+#     state: present
+#  when: ansible_os_family == "Darwin"
+
+- name: Setup collectd configuration directories
+  file:
+    path: "{{ item }}"
+    state: directory
+    recurse: true
+  with_items:
+    - "{{ collectd_conf[ansible_os_family].dirs.conf }}"
+    - "{{ collectd_conf[ansible_os_family].dirs.confd }}/collectd.conf.d"
+
+- name: Setup configuration files
+  template:
+    src:  "etc/collectd/{{ item }}.j2"
+    dest: "{{ collectd_conf[ansible_os_family].dirs.conf }}/{{ item }}"
+  with_items: "{{ collectd_conf_files }}"
+  notify: collectd restart
+
+- name: Setup plugin configurations
+  template:
+    src:  "etc/collectd/collectd.conf.d/{{ item }}.conf.j2"
+    dest: "{{ collectd_conf[ansible_os_family].dirs.confd }}/{{ item }}.conf"
+  with_items: "{{ collectd_plugins }}"
+  notify: collectd restart

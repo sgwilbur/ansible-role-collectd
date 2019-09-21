@@ -1,0 +1,42 @@
+LoadPlugin aggregation
+LoadPlugin match_regex
+
+
+# https://collectd.org/wiki/index.php/Chains
+<Chain "PostCache">
+
+  # Send "cpu" values to the aggregation plugin, then return so the individual
+  # metrics will no longer be written
+  <Rule>
+    <Match regex>
+      Plugin "^cpu$"
+    </Match>
+    <Target write>
+      Plugin "aggregation"
+    </Target>
+    Target stop #finished
+  </Rule>
+
+  # Other rules would go here
+
+  Target "write"                # default pass through, when no rules are matched
+</Chain>
+
+
+<Plugin aggregation>
+	<Aggregation>
+
+		Plugin "cpu"
+		Type "cpu"
+
+    GroupBy "Host"
+		GroupBy "TypeInstance"
+
+		CalculateSum true
+		CalculateAverage true
+
+	</Aggregation>
+
+  # Other aggregations would go here?
+
+</Plugin>
